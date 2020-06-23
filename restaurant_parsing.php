@@ -5,6 +5,7 @@ $records 	= array_map('str_getcsv', file('restaurant_hours.csv'));
 $data 		= array();
 $days_arr 	= array('Mon' => 'Mon','Tue'=> 'Tue','Wed'=>'Wed','Thu'=>'Thu','Fri'=>'Fri','Sat'=>'Sat','Sun'=>'Sun');
 
+
 function getListOfDaysBetweenTwoDays($arr, $start, $end) {
   
   $result 		= [];
@@ -101,16 +102,20 @@ foreach ($records as $row => $value) {
 function is_restaurent_open($open_time,$close_time,$entered_time){
 
 
-	$entered_time 	= date('H:i a',strtotime($entered_time));
-	$open_time 		= date('H:i a',strtotime($open_time));
-	$close_time 	= date('H:i a',strtotime($close_time));
-	$status 		= false;
+	$open_time_checklist 	= strpos($open_time, 'pm');
+	$close_time_checklist	= strpos($close_time, 'am');
+	$entered_time_checklist	= strpos($entered_time, 'am');
+	$entered_time 			= date('Y-m-d H:i',strtotime($entered_time));
+	$open_time 				= date('Y-m-d H:i',strtotime($open_time));
+	$close_time 			= date('Y-m-d H:i',strtotime($close_time));
+	$status 				= false;
 
-	if ($entered_time >= $open_time && $entered_time <= $close_time){
-	   $status = true;
-	}
 
-	return $status;
+	if ($open_time > $close_time){
+		$close_time = date('Y-m-d H:i',strtotime($close_time . " +24 hours"));
+	} 
+
+    return ($open_time <= $entered_time && $entered_time <= $close_time) || ($open_time <= date('Y-m-d H:i',strtotime($entered_time . " +24 hours")) && date('Y-m-d H:i',strtotime($entered_time . " +24 hours")) <= $close_time);
 }
 
 
@@ -136,7 +141,8 @@ function find_open_restaurant($day,$time){
 }
 
 
-$open_restaurant_list = find_open_restaurant('mon','11:30 am'); // Change here for testing
+
+$open_restaurant_list = find_open_restaurant('fri','1:00 am'); // Change here for testing
 
 header('Content-Type: application/csv');
 header('Content-Disposition: attachment; filename="open_restaurant_list.csv";');
@@ -149,3 +155,4 @@ foreach ($open_restaurant_list as $row) {
 
 
 ?>
+
